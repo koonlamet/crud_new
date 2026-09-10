@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const verifyToken = require('../middleware/verifyToken')
-const {addTopic,getTopic,deleteTopic,editTopic,getIndicator,addIndicator,editIndicator,delIndicator,addAssignment, getAssignment} = require('../controllers/topic');
+const {addTopic,getTopic,deleteTopic,editTopic,getIndicator,addIndicator,editIndicator,delIndicator,addAssignment, getAssignment,delAssignment,editAssignment} = require('../controllers/topic');
 const upload = require('../middleware/uploadFile')
 
 
@@ -15,6 +15,8 @@ router.put('/indicator/:id',verifyToken('admin'),upload.array('files',10),editIn
 router.delete('/indicator/:id',verifyToken('admin'),delIndicator)
 router.post('/assignment',verifyToken('admin'),addAssignment)
 router.get('/assignment/:id',verifyToken('admin'),getAssignment)
+router.delete('/assignment/:id',verifyToken('admin'),delAssignment)
+router.put('/assignment/:id',verifyToken('admin'),editAssignment)
 
 
 module.exports = router;

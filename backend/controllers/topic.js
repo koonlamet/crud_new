@@ -189,8 +189,7 @@ exports.addAssignment = async (req,res) =>{
         const {id,evaluator,evaluatee,committee_role,status='pending'} = req.body;
         console.log(evaluator)
         if(committee_role==='chair'){
-            const [row] = await db.query(`select * from assignment where (topic_id = ? AND evaluatee_id =?)`,[id,evaluatee])
-            console.log(row)
+            const [row] = await db.query(`select * from assignment where (topic_id = ? AND evaluatee_id =? AND committee_role = 'chair')`,[id,evaluatee])
             if(row.length>0){
                 return res.status(400).json({
                     status:false,
@@ -220,12 +219,15 @@ exports.getAssignment = async (req,res) =>{
                                             a.evaluator_id,
                                             a.evaluatee_id,
                                             a.committee_role,
+                                            a.topic_id as topic_id,
                                             u1.fname as evaluator,
-                                            u2.fname as evaluatee
+                                            u2.fname as evaluatee,
+                                            t.topic_name as topic_name
                                             
                                             from assignment a 
                                             left join user u1 ON u1.id = a.evaluator_id
-                                            left join user u2 on u2.id = a.evaluatee_id
+                                            left join user u2 ON u2.id = a.evaluatee_id
+                                            left join topic t ON t.id = a.topic_id
                                             where topic_id = ? ORDER BY a.evaluatee_id , a.committee_role`,[id])
         res.status(200).json({
             status:true,
@@ -234,6 +236,57 @@ exports.getAssignment = async (req,res) =>{
         })
     } catch (error) {
         console.log(error)
+        res.status(400).json({
+            status:false,
+            message:'เกิดข้อผิดพลาด'
+        })
+    }
+}
+
+
+exports.delAssignment = async (req,res)=>{
+    try {
+        const {id} = req.params;
+        const [result] = await db.query(`DELETE FROM assignment where id = ?`,[id])
+        if(result.affectedRows==0){
+            return res.status(400).json({
+                status:false,
+                message:'ไม่พบการทำรายการนี้'
+        })
+    }
+        res.status(200).json({
+            status:true,
+            message:'ลบรายการเรียบร้อยแล้ว'
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({
+            status:false,
+            message:'เกิดข้อผิดพลาด'
+        })
+    }
+}
+
+
+exports.editAssignment = async (req,res)=>{
+    try {
+        const {topic_id,evaluator_id,evaluatee_id,committee_role} = req.body;
+        const {id} = req.params
+        if(committee_role==='chair'){
+            const [result] = await db.query(`select * from assignment where topic_id = ? AND evaluatee_id = ? AND committee_role = 'chair'`,[topic_id,evaluatee_id])
+            if(result.length>0)
+                return res.status(400).json({
+                    status:false,
+                    message:'ไม่สามารถมอบหมายประธานกรรมการซ้ำได้'
+                })
+        }
+        const [result] = await db.query(`UPDATE assignment SET topic_id=? , evaluator_id = ? , evaluatee_id=? , committee_role = ? where id = ?`,[topic_id,evaluator_id,evaluatee_id,committee_role,id])
+        res.status(200).json({
+            status:true,
+            message:'แก้ไขข้อมูลการจับคู่สำเร็จ'
+        })
+    } catch (error) {
+        console.log(error);   
         res.status(400).json({
             status:false,
             message:'เกิดข้อผิดพลาด'

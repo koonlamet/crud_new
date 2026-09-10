@@ -167,6 +167,24 @@
             </v-card>
         </v-dialog>
 
+        <v-dialog v-model="editAssignDialog" max-width="400px" width="100%">
+            <v-card>
+                <v-form @submit.prevent="saveEditAssign">
+                <v-card-title>มอบหมายกรรมการ </v-card-title>
+                <v-card-text>
+                    <v-select v-model="eselectedTopic_assign.topic_id" :items="topic" item-title="topic_name" item-value="id" label="หัวข้อประเมิน"></v-select>
+                    <v-select v-model="eselectedTopic_assign.evaluator_id" :items="evaluator" item-title="fname" item-value="id" label="กรรมการ"></v-select>
+                    <v-select v-model="eselectedTopic_assign.evaluatee_id" :items="evaluatee" item-title="fname" item-value="id" label="ผู้รับการประเมิน"></v-select>
+                    <v-select v-model="eselectedTopic_assign.committee_role" :items="committee_role" label="บทบาท"></v-select>
+                </v-card-text>
+                <v-card-actions class="d-flex align-center justify-center">
+                    <v-btn color="red" variant="outlined" @click="editAssignDialog=!editAssignDialog">ยกเลิก</v-btn>
+                    <v-btn color="success" variant="elevated" type="submit">บันทึก</v-btn>
+                </v-card-actions>
+                </v-form>
+            </v-card>
+        </v-dialog>
+
     </v-container>
 </template>
 
@@ -187,11 +205,11 @@ const eIndicator_file = ref(null);
 const newIndicator_file = ref(null);
 const assignment = ref([]);
 const indicator = ref([]);
-const selectedTopic = ref(),selectedTopic_assign = ref();
+const selectedTopic = ref(),selectedTopic_assign = ref(),eselectedTopic_assign = ref();
 const topic = ref([]);
 const eTopic = ref([]);
 const newTopic = ref({});
-const addTopic = ref(false),editTopicDialog = ref(false),addIndicatorDialog = ref(false),editIndicatorDialog = ref(false),addAssignDialog=ref(false);
+const addTopic = ref(false),editTopicDialog = ref(false),addIndicatorDialog = ref(false),editIndicatorDialog = ref(false),addAssignDialog=ref(false),editAssignDialog=ref(false);
 const tab = ref('topics');
 const headers_topic = [
     {title:'หัวข้อประเมิน',key:'topic_name'},
@@ -277,6 +295,7 @@ const fetchData = async () =>{
             }
         })
         topic.value = res.data.data
+        console.log(topic.value)
         selectedTopic.value = topic.value[0].id || []
         selectedTopic_assign.value  = {...selectedTopic.value}
     } catch (error) {
@@ -305,7 +324,7 @@ const fetchAssign = async (c)=>{
                 Authorization:`Bearer ${useCookie('token').value}`
             }
         })
-        assignment.value = res.data.data
+        assignment.value = res.data.data;
         console.log(assignment.value)
     } catch (error) {
         console.log(error)
@@ -352,8 +371,8 @@ const addIndicator = async ()=>{
         })
         alert('เพิ่มข้อมูลตัวชัดวัดสำเร็จ')
         fecthIndicator(selectedTopic.value);
-        newIndicator.value = null;
-        newIndicator_file = null;
+        newIndicator.value = {evidence_kind:[]};
+        newIndicator_file.value = null;
         addIndicatorDialog.value = false;
     } catch (error) {
         alert('เกิดข้อผิดพลาด')
@@ -425,6 +444,56 @@ const addNewAssign = async () =>{
         alert(error.response.data.message)
     }
 }
+
+const editAssign = async (c) =>{
+    try {
+        editAssignDialog.value = true;
+        eselectedTopic_assign.value = {...assignment.value.find(item => item.id === c)}
+        console.log(eselectedTopic_assign.value)
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+const delAssign = async (c) =>{
+    try {
+        if(!confirm('ต้องการลบรายนี้หรือไม่'))return
+        const res = await axios.delete(`http://localhost:3001/api/assignment/${c}`,{
+            headers:{
+                Authorization: `Bearer ${useCookie('token').value}`
+            }
+        })
+        console.log(res)
+        fetchAssign(selectedTopic_assign.value.id);
+    } catch (error) {
+        console.log('delAssign +'+error)
+    }
+}
+
+const saveEditAssign = async () =>{
+    try {
+        const saveAssign = ref({});
+        saveAssign.value = {        
+            id:eselectedTopic_assign.value.id,
+            topic_id:eselectedTopic_assign.value.topic_id,
+            evaluator_id:eselectedTopic_assign.value.evaluator_id,
+            evaluatee_id:eselectedTopic_assign.value.evaluatee_id,
+            committee_role:eselectedTopic_assign.value.committee_role
+        }
+        const res = await axios.put(`http://localhost:3001/api/assignment/${saveAssign.value.id}`,saveAssign.value,{
+            headers:{
+                Authorization:`Bearer ${useCookie('token').value}`
+            }
+        })
+        alert('แก้ไขสำเร็จ');
+        editAssignDialog.value = false;
+        fetchAssign(saveAssign.value.topic_id);
+    } catch (error) {
+        alert(error.response.data.message)
+    }
+    
+}
+
 onMounted(()=>{
     fetchData();
     fetchUser();
