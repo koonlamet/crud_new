@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: mysql:3306
--- Generation Time: Sep 08, 2026 at 08:43 AM
+-- Generation Time: Sep 10, 2026 at 10:00 AM
 -- Server version: 8.0.46
 -- PHP Version: 8.3.33
 
@@ -37,6 +37,23 @@ CREATE TABLE `assignment` (
   `status` enum('pending','committed') DEFAULT 'pending',
   `signature_path` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `assignment`
+--
+
+INSERT INTO `assignment` (`id`, `topic_id`, `evaluator_id`, `evaluatee_id`, `description`, `committee_role`, `status`, `signature_path`) VALUES
+(1, 1, 3, 13, NULL, 'chair', 'pending', NULL),
+(4, 1, 7, 13, NULL, 'member', 'pending', NULL),
+(5, 1, 4, 12, NULL, 'chair', 'pending', NULL),
+(6, 1, 6, 12, NULL, 'member', 'pending', NULL),
+(7, 1, 3, 17, NULL, 'member', 'pending', NULL),
+(10, 1, 2, 12, NULL, 'member', 'pending', NULL),
+(11, 1, 7, 12, NULL, 'member', 'pending', NULL),
+(12, 1, 10, 13, NULL, 'member', 'pending', NULL),
+(14, 1, 11, 13, NULL, 'member', 'pending', NULL),
+(20, 1, 11, 12, NULL, 'member', 'pending', NULL),
+(21, 1, 10, 21, NULL, 'member', 'pending', NULL);
 
 -- --------------------------------------------------------
 
@@ -92,8 +109,7 @@ CREATE TABLE `indicator` (
 --
 
 INSERT INTO `indicator` (`id`, `topic_id`, `type`, `weight`, `description`, `evidence_kind`, `evidence_name`, `evidence_path`, `evidence_url`) VALUES
-(1, 5, 'yes_no', NULL, 'เต็มเวลา', '[\"PDF\",\"IMG\",\"URL\"]', '[\"1788856864009.sql\",\"1788856864013.md\"]', '[\"uploads/1788856864009.sql\",\"uploads/1788856864013.md\"]', 'google.com'),
-(2, 5, '1_4', 10.0, 'เต็มเวลา', '[\"PDF\"]', '[\"1788856894776.sql\",\"1788856894777.md\"]', '[\"uploads/1788856894776.sql\",\"uploads/1788856894777.md\"]', 'google.com');
+(1, 1, '1_4', 1.0, 'ให้คะแนนตัวเอง', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -128,8 +144,8 @@ CREATE TABLE `topic` (
 --
 
 INSERT INTO `topic` (`id`, `topic_name`, `description`, `sdate`, `edate`, `isActive`) VALUES
-(5, 'ประเมินเงินเดือน 2569', 'รอบที่ 1', '2026-09-08', '2026-09-10', 1),
-(6, 'ประเมิน PA', 'รอบ 2', '2026-09-09', '2026-09-24', 1);
+(1, 'ประเมินเงินเดือน', 'รอบ 1', '2026-09-08', '2026-09-09', 1),
+(7, 'ประเมินวิทยฐานะ PA 2', 'ประจำปีการศึกษา 2569', '2026-09-01', '2026-09-15', 1);
 
 -- --------------------------------------------------------
 
@@ -237,7 +253,7 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for table `assignment`
 --
 ALTER TABLE `assignment`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `evidence`
@@ -255,7 +271,7 @@ ALTER TABLE `evidence_file`
 -- AUTO_INCREMENT for table `indicator`
 --
 ALTER TABLE `indicator`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `review`
@@ -267,7 +283,7 @@ ALTER TABLE `review`
 -- AUTO_INCREMENT for table `topic`
 --
 ALTER TABLE `topic`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `user`
@@ -292,7 +308,7 @@ ALTER TABLE `assignment`
 --
 ALTER TABLE `evidence`
   ADD CONSTRAINT `evidence_ibfk_1` FOREIGN KEY (`evaluatee_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `evidence_ibfk_2` FOREIGN KEY (`indicator_id`) REFERENCES `indicator` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `evidence_ibfk_2` FOREIGN KEY (`indicator_id`) REFERENCES `topic` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `evidence_file`

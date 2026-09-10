@@ -45,9 +45,15 @@
                     <v-btn color="primary" icon="mdi-plus" @click="addAssignDialog = !addAssignDialog"></v-btn>
                 </div>
                 <v-data-table :items="assignment" :headers="headers_assignment">
+                    <template #item.evaluatee="{item , index}">
+                        <span v-if="index===0 || assignment[index-1].evaluatee != item.evaluatee">{{ item.evaluatee }}</span>
+                    </template>
+                    <template #item.committee_role="{item}">
+                        <v-chip>{{ item.committee_role=='chair'? 'ประธานกรรมการ':'กรรมการ' }}</v-chip>
+                    </template>
                     <template #item.action="{item}">
-                        <v-btn icon="mdi-pencil" color="primary" variant="outlined" @click="editIndicator(item.id)"></v-btn>
-                        <v-btn icon="mdi-delete" color="red" variant="outlined" @click="delIndicator(item.id)"></v-btn>
+                        <v-btn icon="mdi-pencil" color="primary" variant="outlined" @click="editAssign(item.id)"></v-btn>
+                        <v-btn icon="mdi-delete" color="red" variant="outlined" @click="delAssign(item.id)"></v-btn>
                     </template>
                 </v-data-table>
             </v-tabs-window-item>
@@ -77,7 +83,7 @@
         <v-dialog v-model="editTopicDialog" max-width="400px" width="100%">
             <v-card>
                 <v-form @submit.prevent="editSaveTopic">
-                <v-card-title>แก้ไขตัวชี้วัด</v-card-title>
+                <v-card-title>แก้ไขหัวข้อ</v-card-title>
                 <v-card-text>
                     <v-text-field v-model="eTopic.topic_name" label="หัวข้อประเมิน"></v-text-field>
                     <v-textarea v-model="eTopic.description" label="คำอธิบาย"></v-textarea>
@@ -142,6 +148,25 @@
                 </v-form>
             </v-card>
         </v-dialog>
+
+        <v-dialog v-model="addAssignDialog" max-width="400px" width="100%">
+            <v-card>
+                <v-form @submit.prevent="addNewAssign">
+                <v-card-title>มอบหมายกรรมการ </v-card-title>
+                <v-card-text>
+                    <v-select v-model="selectedTopic_assign.id" :items="topic" item-title="topic_name" item-value="id" label="หัวข้อประเมิน"></v-select>
+                    <v-select v-model="selectedTopic_assign.evaluator" :items="evaluator" item-title="fname" item-value="id" label="กรรมการ"></v-select>
+                    <v-select v-model="selectedTopic_assign.evaluatee" :items="evaluatee" item-title="fname" item-value="id" label="ผู้รับการประเมิน"></v-select>
+                    <v-select v-model="selectedTopic_assign.committee_role" :items="committee_role" label="บทบาท"></v-select>
+                </v-card-text>
+                <v-card-actions class="d-flex align-center justify-center">
+                    <v-btn color="red" variant="outlined" @click="addAssignDialog=!addAssignDialog">ยกเลิก</v-btn>
+                    <v-btn color="success" variant="elevated" type="submit">บันทึก</v-btn>
+                </v-card-actions>
+                </v-form>
+            </v-card>
+        </v-dialog>
+
     </v-container>
 </template>
 
@@ -155,13 +180,14 @@ const newIndicator = ref({
     evidence_kind:[]
 });
 
-const evaluator = ref([]),evaluatee = ref([]);
+const evaluator = ref([])
+const evaluatee = ref([]);
 const eIndicator = ref({});
 const eIndicator_file = ref(null);
 const newIndicator_file = ref(null);
 const assignment = ref([]);
 const indicator = ref([]);
-const selectedTopic = ref();
+const selectedTopic = ref(),selectedTopic_assign = ref();
 const topic = ref([]);
 const eTopic = ref([]);
 const newTopic = ref({});
@@ -174,6 +200,10 @@ const headers_topic = [
     {title:'วันจบ',key:'edate'},
     {title:'#',key:'action'},
 ]
+const committee_role = [
+    {title:'ประธานกรรมการ',value:'chair'},
+    {title:'กรรมการ',value:'member'}
+]
 
 const headers_indicator = [
     {title:'ตัวชี้วัด',key:'description'},
@@ -184,8 +214,8 @@ const headers_indicator = [
 ]
 
 const headers_assignment = [
-    {title:'ผู้รับการประเมิน',key:'description'},
-    {title:'กรรมการ',key:'type'},
+    {title:'ผู้รับการประเมิน',key:'evaluatee'},
+    {title:'กรรมการ',key:'evaluator'},
     {title:'ตำแหน่ง',key:'committee_role'},
     {title:'#',key:'action'},
 ]
@@ -232,7 +262,8 @@ const fetchUser = async () =>{
                 Authorization:`Bearer ${useCookie('token').value}`
             }
         })
-        console.log(res.data.data)
+        evaluator.value = res.data.data.filter(f => f.role=='evaluator');
+        evaluatee.value = res.data.data.filter(f => f.role=='evaluatee');
     } catch (error) {
         alert(error)
     }
@@ -247,6 +278,7 @@ const fetchData = async () =>{
         })
         topic.value = res.data.data
         selectedTopic.value = topic.value[0].id || []
+        selectedTopic_assign.value  = {...selectedTopic.value}
     } catch (error) {
         console.log(error)
     }
@@ -260,12 +292,25 @@ const fecthIndicator = async (topicid) =>{
             } 
         })
         indicator.value = res.data.data || []
-        console.log(indicator.value)
+        selectedTopic_assign.value.id = selectedTopic.value
     } catch (error) {
         console.log(error)
     }
 }
 
+const fetchAssign = async (c)=>{
+    try {
+        const res = await axios.get(`http://localhost:3001/api/assignment/${c}`,{
+            headers:{
+                Authorization:`Bearer ${useCookie('token').value}`
+            }
+        })
+        assignment.value = res.data.data
+        console.log(assignment.value)
+    } catch (error) {
+        console.log(error)
+    }
+}
 const editSaveTopic = async ()=>{
     console.log(eTopic.value.id)
     try {
@@ -343,7 +388,6 @@ const editIndicator = async (c) =>{
     try {
         editIndicatorDialog.value = true;
         eIndicator.value = {...indicator.value.find(item => item.id === c)}
-        console.log(eIndicator.value)
     } catch (error) {
         alert('เกิดข้อผิดพลาด');
     }
@@ -366,10 +410,28 @@ const delIndicator = async (c) =>{
     }
 }
 
+const addNewAssign = async () =>{
+    try {
+
+        console.log(selectedTopic_assign.value)
+        const res = await axios.post(`http://localhost:3001/api/assignment`,selectedTopic_assign.value,{
+            headers:{
+                Authorization:`Bearer ${useCookie('token').value}`
+            }
+        })
+        addAssignDialog.value = false;
+        fetchAssign(selectedTopic_assign.value.id)
+    } catch (error) {
+        alert(error.response.data.message)
+    }
+}
 onMounted(()=>{
     fetchData();
     fetchUser();
 })
 
-watch(selectedTopic , (newId) => {if(newId){fecthIndicator(newId)}})
+watch(selectedTopic , (newId) => {if(newId){fecthIndicator(newId);fetchAssign(newId)}})
 </script>
+
+
+

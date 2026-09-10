@@ -27,7 +27,7 @@ exports.getUser = async (req,res)=>{
 
 exports.getAllUser = async (req,res)=>{
     try {
-        const [row] = await db.query(`select * from user`);
+        const [row] = await db.query(`select id,username,fname,role,status from user`);
         if(row.length==0){
             return res.status(400).json({
                 status:true,

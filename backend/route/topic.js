@@ -1,18 +1,20 @@
 const express = require('express');
-const route = express.Router();
+const router = express.Router();
 const verifyToken = require('../middleware/verifyToken')
-const {addTopic,getTopic,deleteTopic,editTopic,getIndicator,addIndicator, editIndicator,delIndicator } = require('../controllers/topic');
+const {addTopic,getTopic,deleteTopic,editTopic,getIndicator,addIndicator,editIndicator,delIndicator,addAssignment, getAssignment} = require('../controllers/topic');
 const upload = require('../middleware/uploadFile')
 
 
-route.post('/topic',verifyToken('admin'),addTopic)
-route.get('/topic',verifyToken('admin'),getTopic)
-route.delete('/topic/:id',verifyToken('admin'),deleteTopic)
-route.put('/topic/:id',verifyToken('admin'),editTopic)
-route.get('/indicator/:id',verifyToken('admin'),getIndicator)
-route.post('/indicator',verifyToken('admin'),upload.array('files',10),addIndicator)
-route.put('/indicator/:id',verifyToken('admin'),upload.array('files',10),editIndicator)
-route.delete('/indicator/:id',verifyToken('admin'),delIndicator)
+router.post('/topic',verifyToken('admin'),addTopic)
+router.get('/topic',verifyToken('admin'),getTopic)
+router.delete('/topic/:id',verifyToken('admin'),deleteTopic)
+router.put('/topic/:id',verifyToken('admin'),editTopic)
+router.get('/indicator/:id',verifyToken('admin'),getIndicator)
+router.post('/indicator',verifyToken('admin'),upload.array('files',10),addIndicator)
+router.put('/indicator/:id',verifyToken('admin'),upload.array('files',10),editIndicator)
+router.delete('/indicator/:id',verifyToken('admin'),delIndicator)
+router.post('/assignment',verifyToken('admin'),addAssignment)
+router.get('/assignment/:id',verifyToken('admin'),getAssignment)
 
 
-module.exports = route;
+module.exports = router;

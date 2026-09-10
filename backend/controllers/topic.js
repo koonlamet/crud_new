@@ -163,11 +163,12 @@ exports.editIndicator = async (req,res)=>{
     }
 }
 
+
 exports.delIndicator = async (req,res) =>{
     try {
         const {id} = req.params;
         const [row] = await db.query(`DELETE FROM indicator where id = ?`,[id]);
-            res.status(201).json({
+        res.status(201).json({
             status:true,
             message:'ลบตัวชี้วัดสำเร็จ',
             data:row
@@ -175,8 +176,67 @@ exports.delIndicator = async (req,res) =>{
     } catch (error) {
         console.log(error)
         res.status(400).json({
-        status:false,
-        message:'เกิดข้อผิดพลาด'
+            status:false,
+            message:'เกิดข้อผิดพลาด'
+        })
+    }
+}
+
+
+
+exports.addAssignment = async (req,res) =>{
+    try {
+        const {id,evaluator,evaluatee,committee_role,status='pending'} = req.body;
+        console.log(evaluator)
+        if(committee_role==='chair'){
+            const [row] = await db.query(`select * from assignment where (topic_id = ? AND evaluatee_id =?)`,[id,evaluatee])
+            console.log(row)
+            if(row.length>0){
+                return res.status(400).json({
+                    status:false,
+                    message:'ไม่สามารถมอบหมายประธานกรรมการซ้ำได้'
+                })
+            }
+        }
+        const [result] = await db.query(`INSERT INTO assignment (topic_id,evaluator_id,evaluatee_id,committee_role,status) VALUES  (?,?,?,?,?)`,[id,evaluator,evaluatee,committee_role,status])
+        res.status(201).json({
+            status:true,
+            message:'เพิ่มข้อมูลจับคู่กรรมการและผู้ถูกประเมินสำเร็จ'
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({
+            status:false,
+            message:'เกิดข้อผิดพลาด'
+        })
+    }
+}
+
+exports.getAssignment = async (req,res) =>{
+    try {
+        const {id} = req.params;
+        const [row] = await db.query(`SELECT 
+                                            a.id,
+                                            a.evaluator_id,
+                                            a.evaluatee_id,
+                                            a.committee_role,
+                                            u1.fname as evaluator,
+                                            u2.fname as evaluatee
+                                            
+                                            from assignment a 
+                                            left join user u1 ON u1.id = a.evaluator_id
+                                            left join user u2 on u2.id = a.evaluatee_id
+                                            where topic_id = ? ORDER BY a.evaluatee_id , a.committee_role`,[id])
+        res.status(200).json({
+            status:true,
+            message:'ดึงข้อมูลสำเร็จ',
+            data:row
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({
+            status:false,
+            message:'เกิดข้อผิดพลาด'
         })
     }
 }
