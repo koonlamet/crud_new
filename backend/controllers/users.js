@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const db = require('../db');
 
 
-exports.getUser = async (req,res)=>{
+exports.getRoleUser = async (req,res)=>{
     try {
         const role = req.params.role;
         const [row] = await db.query(`select id,username,fname,role,status from user where role = ?`,[role]);
@@ -112,6 +112,90 @@ exports.editUser = async (req,res)=>{
             message:'รีเซตรหัสผ่านเรียบร้อย'
         })
     } catch (error) {
+        res.status(400).json({
+                status:false,
+                message:'เกิดข้อผิดพลาด'
+        })
+    }
+}
+
+exports.getUser = async (req,res) =>{
+    try {
+        const {id} = req.params;
+        const [row] = await db.query(`select id,username,fname from user where id = ?`,[id])
+        console.log(row)
+        res.status(200).json({
+            status:true,
+            message:'ดึงข้อมูลสำเร็จ',
+            data:row[0]
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({
+                status:false,
+                message:'เกิดข้อผิดพลาด'
+        })
+    }
+}
+
+exports.changePassword = async (req,res)=>{
+    try {
+        const {id} = req.params
+        const {oldpassword,newpassword,cnewpassword} = req.body
+        if(newpassword!=cnewpassword){
+            return  res.status(400).json({
+                status:false,
+                message:'ยืนยันรหัสผ่านไม่ถูกต้อง'
+            })
+        }
+        const [row] = await db.query(`select password from user where id =?`,[id])
+        if(row.length==0){
+            return  res.status(400).json({
+                status:false,
+                message:'ไม่พบผู้ใช้งาน'
+            })
+        }
+        const isMatch = await bcrypt.compare(oldpassword,row[0].password)
+        if(!isMatch){
+            return  res.status(400).json({
+                status:false,
+                message:'รหัสเดิมไม่ถูกต้อง'
+            })
+        }
+        const passHash = await bcrypt.hash(newpassword,10)
+        const [result] = await db.query(`UPDATE user SET password = ? where id = ?`,[passHash,id])
+        res.status(200).json({
+            status:true,
+            message:'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว'
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({
+                status:false,
+                message:'เกิดข้อผิดพลาด'
+        })
+    }
+}
+
+exports.editProfile = async (req,res)=>{
+    try {
+        const {id} = req.params;
+        const {fname} = req.body;
+        console.log(req.body)
+        const [result] = await db.query(`UPDATE user SET fname=? where id = ?`,[fname,id])
+        if(result.affectedRows==0){
+            return  res.status(400).json({
+                status:false,
+                message:'ไม่พบผู้ใช้งาน'
+            })
+        }
+        res.status(200).json({
+            status:true,
+            message:'แก้ไขข้อมูลสำเร็จ'
+        })
+
+    } catch (error) {
+        console.log(error)
         res.status(400).json({
                 status:false,
                 message:'เกิดข้อผิดพลาด'

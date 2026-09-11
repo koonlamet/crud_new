@@ -6,7 +6,7 @@ const upload = require('../middleware/uploadFile')
 
 
 router.post('/topic',verifyToken('admin'),addTopic)
-router.get('/topic',verifyToken('admin'),getTopic)
+router.get('/topic',verifyToken('admin','evaluatee'),getTopic)
 router.delete('/topic/:id',verifyToken('admin'),deleteTopic)
 router.put('/topic/:id',verifyToken('admin'),editTopic)
 router.get('/indicator/:id',verifyToken('admin'),getIndicator)

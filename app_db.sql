@@ -34,7 +34,7 @@ CREATE TABLE `assignment` (
   `evaluatee_id` int NOT NULL,
   `description` text,
   `committee_role` enum('chair','member') DEFAULT 'member',
-  `status` enum('pending','committed') DEFAULT 'pending',
+  `status` enum('pending','draft','committed') DEFAULT 'pending',
   `signature_path` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 

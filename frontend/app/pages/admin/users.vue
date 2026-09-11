@@ -148,7 +148,7 @@ const chip = {
 const addUser = ref({})
 const fetchData = async (c)=>{
     try {
-        const res = await axios.get(`http://localhost:3001/api/users/${c}`,{
+        const res = await axios.get(`http://localhost:3001/api/users/role/${c}`,{
             headers:{
                 Authorization : `Bearer ${useCookie('token').value}`
             }

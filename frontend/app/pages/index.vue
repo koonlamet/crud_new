@@ -36,9 +36,8 @@ const login = async () =>{
             return
         }
         navigateTo('/'+res.data.data.role);
-
     } catch (error) {
-        alert('การเข้าสู่ระบบผิดพลาดกรุณาลองอีกครั้ง')
+        alert(error.response?.data?.message)
     }
 }
 
