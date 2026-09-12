@@ -31,3 +31,51 @@ exports.getTopic = async (req,res) =>{
         })
     }
 }
+
+exports.getIndicator = async (req,res)=>{
+    try {
+        const {id} = req.params;
+        const evaluatee_id = req.user.id
+        const sql = `select t.id as topic_id,
+		                    t.topic_name as topic_name,
+                            t.description as topic_desc,
+                            i.id as indicator_id,
+     	                    i.description as indicator_desc,
+                            i.type,
+                            i.weight,
+                            e.id as evidence_id,
+                            e.self_score,
+                            e.detail as evidence_detail,
+                            e.self_note,
+                            e.url,
+                            COALESCE(
+                                (select json_arrayagg(
+                                    json_object(
+                                        'id',ef.id,
+                                        'file_name',ef.file_name,
+                                        'file_path',ef.file_path
+                                    )
+    	                        )
+                            from evidence_file ef 
+                            where ef.evidence_id = e.id
+                            ),
+                            JSON_ARRAY()
+                            )as files
+                            from topic t 
+                            LEFT JOIN indicator i ON i.topic_id = t.id
+                            LEFT JOIN evidence e ON e.indicator_id = i.id AND e.evaluatee_id = ?
+                            where t.id = ?`
+        const [row] = await db.query(sql,[evaluatee_id,id])
+        console.log(row)
+        res.status(200).json({
+            status:true,
+            data:row
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(590).json({
+            status:false,
+            message:'เกิดข้อผิดพลาดไม่สามารถดึงข้อมูลได้'
+        })
+    }   
+}
