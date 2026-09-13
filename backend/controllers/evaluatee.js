@@ -83,11 +83,36 @@ exports.getIndicator = async (req,res)=>{
 
 exports.ansEvidence = async (req,res) =>{
     try {
-        const id = req.user.id;
-        const {topic_id,evidence_id,indicator_id,self_score,deleteFile,detail} = req.body;
-        deleteFile = JSON.parse(deleteFile);
+        const id = req.user.id
+        const {topic_id,evidence_id=null,indicator_id,self_score,deleteFile,detail} = req.body;
+        const deleteFileParse = deleteFile ? JSON.parse(deleteFile):[];
+        let newEvidence_id = evidence_id;
+        const [check] = await db.query(`select * from evidence where id = ? AND topic_id = ? AND indicator_id = ?`,[evidence_id,topic_id,indicator_id])
+        if(check && check.length > 0){
+            const [row] = await db.query(`UPDATE evidence SET topic_id=?,evaluatee_id=?,indicator_id=?,detail=?,self_score=? where id = ?`,[topic_id,id,indicator_id,detail,self_score,evidence_id]);
+        }else{
+            const [row] = await db.query(`INSERT INTO evidence (topic_id,evaluatee_id,indicator_id,detail,self_score) VALUES (?,?,?,?,?)`,[topic_id,id,indicator_id,detail,self_score])
+            newEvidence_id = row.insertId
+        }
+        if(deleteFileParse && deleteFileParse.length>0){
+            const [deleteExe] = await db.query(`DELETE FROM evidence_file where id IN (?)`,[deleteFileParse])
+        }
+        if(req.files && req.files.length>0){
+            for(const file of req.files){
+                await db.query(`INSERT INTO evidence_file (evidence_id,file_name,file_path,file_mime,file_size) VALUES (?,?,?,?,?)`,[newEvidence_id,file.filename,file.path,file.mimetype,file.size])
+            }
+        }
+        res.status(201).json({
+            status:true,
+            message:'การทำรายการเรียบร้อย'
+        })
+
+
         
     } catch (error) {
-        
+        res.status(500).json({
+            status:false,
+            message:'เกิดข้อผิดพลาด'
+        })
     }
 }
