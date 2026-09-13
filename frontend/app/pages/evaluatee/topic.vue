@@ -17,9 +17,12 @@
             </v-data-table>
         </div>
         <div v-else>
-            <h3># {{ ind[0].topic_name }}</h3>
-            <h5>  {{ ind[0].topic_desc }}</h5>
+            <h3># {{ ind[0]?.topic_name }}</h3>
+            <h5>  {{ ind[0]?.topic_desc }}</h5>
             <v-data-table :items="ind" :headers="header_ind">
+                <template #item.weight="{item}">
+                    {{ item.type=='1_4'?item.weight:'-' }}
+                </template>
                 <template #item.self_score="{item}">
                     {{displayScore(item)}}
                 </template>
@@ -34,14 +37,49 @@
                 <template #item.status="{item}">
                     <v-chip  :color="item.self_score==null? 'red':'green'">{{ item.self_score == null ? 'ยังไม่ตอบ':'ตอบแล้ว'}}</v-chip>
                 </template>
+                <template #item.action="{item}">
+                    <v-btn icon="mdi-clipboard-edit-outline" @click="openIndicator(item)"></v-btn>
+                </template>
             </v-data-table>
             <v-btn @click="selectedTopic = null">ยกเลิก</v-btn>
         </div>
+
+        <v-dialog v-model="openIndicatorDialog" max-width="600px" scrollable>
+            <v-card>
+                <v-card-title class="text-warp">
+                    {{ indicator_data.indicator_desc }}
+                </v-card-title>
+                <v-card-text>
+                    <v-select v-if="indicator_data.type=='1_4'" v-model="indicator_data.self_score" :items="[1,2,3,4]" label="เลือกคะแนน 1-4"></v-select>
+                    <v-select v-if="indicator_data.type=='yes_no'" v-model="indicator_data.self_score" :items="[{title:'มี',value:1},{title:'ไม่มี',value:0}]" item-title="title" item-value="value" label="มี/ไม่มี"></v-select>
+                    <div v-if="indicator_data.files && indicator_data.files.length>0">
+                        <v-chip closable @click:close="removeFile(index,file.id)" v-for="(file,index) in indicator_data.files" :key="file.id">{{ file.file_name }}</v-chip>
+                    </div>
+                    <v-file-input v-model="newFile" type="file" multiple label="เลือกไฟล์หลักฐานเพิ่มเติม PDF,รูปภาพ" class="mt-2"></v-file-input>
+                    <div v-for="(item , index) in details">
+                        <v-text-field   v-model="details[index]" 
+                                        :label="`รายละเอียดที่ ${index+1}`"
+                                        append-inner-icon="mdi-close "
+                                        @click:append-inner="details.splice(index,1)"
+                        ></v-text-field>
+                    </div>
+                    <div class="d-flex align-center justify-end">
+                        <v-btn @click="details.push('')" icon="mdi-plus"></v-btn>
+                    </div>
+                    <v-divider class="mt-2"></v-divider>
+                    <div class="mt-2 d-flex align-center justify-center ga-2">
+                        <v-btn @click="openIndicatorDialog = !openIndicatorDialog">ยกเลิก</v-btn>
+                        <v-btn @click="saveIndicator">บันทึก</v-btn>
+                    </div>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 
 <script setup>
 import axios from 'axios';
+import { id } from 'vuetify/locale';
 
 
 definePageMeta({
@@ -66,12 +104,19 @@ const header = [
     {title:'#',key:'action'},
 ]
 
+const details = ref([]);
+const deleteFile = ref([]);
+const newFile = ref([]);
 const topic = ref([]);
-const selectedTopic = ref(null)
+const selectedTopic = ref(null);
 const ind = ref([]);
+const indicator_data = ref({});
+const openIndicatorDialog = ref(false);
+
 const openEvaluation = async (id)=>{
-    selectedTopic.value = id
+
     try {
+        selectedTopic.value = id
         const res = await axios.get(`http://localhost:3001/api/evaluatee/indicator/${selectedTopic.value}`,{
             headers:{
                 Authorization:`Bearer ${useCookie('token').value}`
@@ -123,6 +168,44 @@ const displayScore = (item)=>{
     }
     return item.self_score;
 }
+
+const openIndicator = (c) =>{
+    try {
+        deleteFile.value = [];
+        openIndicatorDialog.value = true;
+        newFile.value = [];
+        indicator_data.value = JSON.parse(JSON.stringify(c))
+        details.value = JSON.parse(indicator_data.value.evidence_detail || [''])
+        if(indicator_data.value.self_score!=null){
+            indicator_data.value.self_score = Number(indicator_data.value.self_score)
+        }
+        console.log(indicator_data.value)
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+
+const removeFile = (index , fileId)=>{
+    indicator_data.value.files.splice(index,1)
+    if(fileId){
+        deleteFile.value.push(fileId)
+    }
+
+    console.log(deleteFile.value)
+}
+
+
+const saveIndicator = async () =>{
+    try {
+        console.log('data',indicator_data.value)
+        console.log('newfile',newFile.value)
+        console.log('deltefile',deleteFile.value)
+        console.log('detail',details.value)
+    } catch (error) {
+        console.log(error)
+    }
+} 
 
 onMounted(()=>{
     fetchTopic();
