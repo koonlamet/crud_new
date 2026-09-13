@@ -68,7 +68,8 @@ CREATE TABLE `evidence` (
   `indicator_id` int NOT NULL,
   `detail` text,
   `self_score` decimal(3,1) DEFAULT NULL,
-  `self_note` text
+  `self_note` text,
+  `url` varchar(500) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------

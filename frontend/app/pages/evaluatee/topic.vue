@@ -198,10 +198,26 @@ const removeFile = (index , fileId)=>{
 
 const saveIndicator = async () =>{
     try {
-        console.log('data',indicator_data.value)
-        console.log('newfile',newFile.value)
-        console.log('deltefile',deleteFile.value)
-        console.log('detail',details.value)
+        const fd = new FormData();
+        fd.append('topic_id',indicator_data.value.topic_id);
+        fd.append('evidence_id',indicator_data.value.evidence_id);
+        fd.append('indicator_id',indicator_data.value.indicator_id);
+        fd.append('self_score',indicator_data.value.self_score)
+        fd.append('deleteFile',JSON.stringify(deleteFile.value));
+        fd.append('detail',JSON.stringify(details.value));
+
+        if(newFile.value && newFile.value.length>0){
+            newFile.value.forEach(file =>{fd.append('files',file)
+            })
+        }
+
+        const res = await axios.post(`http://localhost:3001/api/evaluatee/evidence`,fd,{
+            headers:{
+                Authorization:`Bearer ${useCookie('token').value}`
+            }
+        })
+
+
     } catch (error) {
         console.log(error)
     }

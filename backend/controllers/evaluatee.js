@@ -1,3 +1,4 @@
+const { json } = require('express')
 const db = require('../db')
 
 
@@ -66,7 +67,6 @@ exports.getIndicator = async (req,res)=>{
                             LEFT JOIN evidence e ON e.indicator_id = i.id AND e.evaluatee_id = ?
                             where t.id = ?`
         const [row] = await db.query(sql,[evaluatee_id,id])
-        console.log(row)
         res.status(200).json({
             status:true,
             data:row
@@ -78,4 +78,16 @@ exports.getIndicator = async (req,res)=>{
             message:'เกิดข้อผิดพลาดไม่สามารถดึงข้อมูลได้'
         })
     }   
+}
+
+
+exports.ansEvidence = async (req,res) =>{
+    try {
+        const id = req.user.id;
+        const {topic_id,evidence_id,indicator_id,self_score,deleteFile,detail} = req.body;
+        deleteFile = JSON.parse(deleteFile);
+        
+    } catch (error) {
+        
+    }
 }
