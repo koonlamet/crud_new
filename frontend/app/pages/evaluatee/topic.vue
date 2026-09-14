@@ -12,7 +12,7 @@
                 <template #item.action="{item}">
                     <v-btn prepend-icon="mdi-pencil" color="success" v-if="item.status==='ดำเนินการ' && item.ans_count==0" @click="openEvaluation(item.id)">เริ่ม</v-btn>
                     <v-btn prepend-icon="mdi-pencil" color="info" v-if="item.status==='ดำเนินการ' && item.ans_count>0" @click="openEvaluation(item.id)">ทำต่อ / แก้ไข</v-btn>
-                    <v-btn prepend-icon="mdi-eye" color="grey" v-if="item.status==='หมดเวลา'">ดูคะแนน</v-btn>
+                    <v-btn prepend-icon="mdi-eye" color="grey" v-if="item.status==='หมดเวลา'" :to="`/evaluatee/${item.id}`">ดูคะแนน</v-btn>
                 </template>
             </v-data-table>
         </div>
@@ -41,7 +41,7 @@
                     <v-btn icon="mdi-clipboard-edit-outline" @click="openIndicator(item)"></v-btn>
                 </template>
             </v-data-table>
-            <v-btn @click="selectedTopic = null">ยกเลิก</v-btn>
+            <v-btn @click="selectedTopic = null" icon="mdi-arrow-left"></v-btn>
         </div>
 
         <v-dialog v-model="openIndicatorDialog" max-width="600px" scrollable>
@@ -155,6 +155,7 @@ const fetchTopic = async () =>{
                 }
             
         })
+        console.log(topic.value)
     } catch (error) {
         console.log('error')
        // console.log(error.response?.data?.message)
@@ -216,8 +217,12 @@ const saveIndicator = async () =>{
                 Authorization:`Bearer ${useCookie('token').value}`
             }
         })
-
-
+        console.log(res.data)
+        openEvaluation(selectedTopic.value)
+        openIndicatorDialog.value = false
+        indicator_data.value = {};
+        details.value = [];
+        alert(res.data.message)
     } catch (error) {
         console.log(error)
     }
