@@ -139,6 +139,7 @@ exports.getScore = async (req,res)=>{
                                             a.evaluator_id,
                                             u.fname as evaluator_name,
                                             a.committee_role,
+                                            a.description as comment,
                                             a.signature_path,
                                             a.status
                                             from assignment a
@@ -156,7 +157,7 @@ exports.getScore = async (req,res)=>{
                                             i.weight,
                                             i.description as indicator_desc,
                                             e.self_score,
-                                            ROUND(avg(r.score),2) AS avg_review
+                                            ROUND(avg(r.score),1) AS avg_review
                                             from indicator i
                                             JOIN topic t ON t.id = i.topic_id
                                             LEFT JOIN evidence e ON e.indicator_id = i.id AND e.evaluatee_id = ?
@@ -168,8 +169,8 @@ exports.getScore = async (req,res)=>{
 
         
         let totalWeight = 0;
-        let totalWeightScore = 0;
-        let totalScore = 0;
+        let totalReviewScore = 0;
+        let totalSelfScore = 0;
         let totalIndicator = 0;
 
         evaluator.forEach(item => {
@@ -188,18 +189,17 @@ exports.getScore = async (req,res)=>{
                 item.weight_score = '0';
             }else{
                 const weight = Number(item.weight || 0);
-                const avgScore = Number(item.self_score || 0);
-                const avgWeightScore = Number(avgScore * weight).toFixed(2);
+                const reviewScore = Number(item.avg_review || 0);
+                const selfScore = Number(item.self_score) || 0;
 
-                item.weight_score = avgWeightScore;
                 totalWeight += Number(weight);
-                totalWeightScore += Number(avgWeightScore);
-                totalScore += Number(avgScore);
+                totalReviewScore += Number(reviewScore*weight);
+                totalSelfScore += Number(selfScore*weight);
                 totalIndicator += 1;
             }
         });
-        const finalSelfScore = totalScore > 0 ? (totalScore/totalIndicator).toFixed(2):'0.00';
-        const finalScore = totalWeight > 0 ? (totalWeightScore/totalWeight).toFixed(2):'0.00';
+        const finalSelfScore = totalIndicator > 0 ? (totalSelfScore/totalWeight).toFixed(2):'0.00';
+        const finalScore = totalWeight > 0 ? (totalReviewScore/totalWeight).toFixed(2):'0.00';
         res.status(200).json({
             status:true,
             message:'การดึงข้อมูล OK',
@@ -212,6 +212,9 @@ exports.getScore = async (req,res)=>{
         })
 
     } catch (error) {
-        console.log(error)
+        res.status(500).json({
+            status:false,
+            error:error
+        })
     }
 }

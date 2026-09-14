@@ -10,9 +10,9 @@
                     <v-progress-linear rounded="lg" color="success" :model-value="100*(item.ans_count/item.indi_count)" height="15">{{ item.ans_count }} / {{ item.indi_count }}</v-progress-linear>
                 </template>
                 <template #item.action="{item}">
-                    <v-btn prepend-icon="mdi-pencil" color="success" v-if="item.status==='ดำเนินการ' && item.ans_count==0" @click="openEvaluation(item.id)">เริ่ม</v-btn>
-                    <v-btn prepend-icon="mdi-pencil" color="info" v-if="item.status==='ดำเนินการ' && item.ans_count>0" @click="openEvaluation(item.id)">ทำต่อ / แก้ไข</v-btn>
-                    <v-btn prepend-icon="mdi-eye" color="grey" v-if="item.status==='หมดเวลา'" :to="`/evaluatee/${item.id}`">ดูคะแนน</v-btn>
+                    <v-btn icon="mdi-pencil" color="success" v-if="item.status==='ดำเนินการ' && item.ans_count==0" @click="openEvaluation(item.id)"></v-btn>
+                    <v-btn icon="mdi-clipboard-edit-outline" color="info" v-if="item.status==='ดำเนินการ' && item.ans_count>0" @click="openEvaluation(item.id)"></v-btn>
+                    <v-btn icon="mdi-eye" color="grey" v-if="item.status==='หมดเวลา'" :to="`/evaluatee/${item.id}`"></v-btn>
                 </template>
             </v-data-table>
         </div>
