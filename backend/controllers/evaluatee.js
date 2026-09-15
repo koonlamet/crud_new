@@ -134,6 +134,8 @@ exports.getScore = async (req,res)=>{
             })
         }
 
+        const [evaluatee] = await db.query(`select fname from user where id = ?`,[id]);
+
         const [evaluator] = await db.query(`select
                                             a.id as assignment_id,
                                             a.evaluator_id,
@@ -205,6 +207,7 @@ exports.getScore = async (req,res)=>{
             message:'การดึงข้อมูล OK',
             data:{
                 evaluator:evaluator,
+                evaluatee:evaluatee,
                 indicator:indicator,
                 avgselfscore:finalSelfScore,
                 finalscore:finalScore

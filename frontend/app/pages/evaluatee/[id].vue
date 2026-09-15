@@ -9,6 +9,7 @@
         <div class="text-center">
             <div><h2>{{ indicator[0]?.topic_name }}</h2></div>
             <div><h5>{{ indicator[0]?.topic_desc }}</h5></div>  
+            <div><h5>ผู้รับการประเมิน : {{ evaluatee[0]?.fname }}</h5></div>
         </div>
         <v-table>
             <thead>
@@ -65,6 +66,7 @@ const route = useRoute();
 const topic_id = route.params.id;
 const indicator = ref([]);
 const evaluator = ref([]);
+const evaluatee = ref([]);
 const avgselfscore = ref('');
 const finalscore = ref('');
 const onPrint = ref(false);
@@ -91,9 +93,11 @@ const getScore = async ()=>{
         console.log(res.data.data)
         indicator.value = res.data.data.indicator;
         evaluator.value = res.data.data.evaluator;
+        evaluatee.value = res.data.data.evaluatee;
         avgselfscore.value = res.data.data.avgselfscore;
         finalscore.value = res.data.data.finalscore;
     } catch (error) {
+        console.log(error)
         navigateTo('/evaluatee/topic')
     }
 }

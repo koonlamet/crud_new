@@ -1,7 +1,7 @@
-vb<template>
-    <div>
-        {{ useCookie('user')}}
-    </div>
+<template>
+    <v-container>
+        {{ useCookie('user').value }}
+    </v-container>
 </template>
 
 <script setup>
