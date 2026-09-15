@@ -10,15 +10,20 @@
                     {{ item.total_assign }} คน
                 </template>
                 <template #item.action="{item}">
-                    <v-btn icon="mdi-eye" @click="selectedTopic = item.id"></v-btn>
+                    <v-btn icon="mdi-eye" @click="selectedTopic = item.id;pageStep+=1"></v-btn>
                 </template>
             </v-data-table>
         </div>
 
         <div v-else>
-            <v-btn icon="mdi-arrow-left" @click="selectedTopic=null"></v-btn>
-            <v-data-table :items="evaluatee" :headers="header_evaluatee"></v-data-table>
+            <v-btn icon="mdi-arrow-left" @click="selectedTopic=null;pageStep-=1"></v-btn>
+            <v-data-table :items="evaluatee" :headers="header_evaluatee">
+                <template #item.action="{item}">
+                    <v-btn icon="mdi-clipboard-edit-outline" @click="getScore(item.assignment_id)"></v-btn>
+                </template>
+            </v-data-table>
         </div>
+
     </v-container>
 </template>
 
@@ -44,7 +49,6 @@ const header_evaluatee = [
     {title:'#',key:'action'}
     
 ]
-
 const topic = ref([]);
 const selectedTopic = ref();
 const evaluatee = ref([]);
@@ -57,6 +61,7 @@ const getTopic = async ()=>{
             }
         })
         topic.value = res.data.data
+        console.log(topic.value)
     } catch (error) {
         console.log(error)
     }
@@ -69,8 +74,21 @@ const getEvaluatee = async (id)=>{
                 Authorization:`Bearer ${useCookie('token').value}`
             }
         })
-        console.log(res)
         evaluatee.value = res.data.data
+        console.log(evaluatee.value)
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+const getScore = async (id)=>{
+    try {
+        const res = await axios.get(`http://localhost:3001/api/getscore/${id}`,{
+            headers:{
+                Authorization:`Bearer ${useCookie('token').value}`
+            }
+        })
+        console.log(res.data.data)
     } catch (error) {
         console.log(error)
     }
